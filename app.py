@@ -7,7 +7,7 @@ from flask_bcrypt import Bcrypt
 import io
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = ""
+app.config["SQLALCHEMY_DATABASE_URI"] = "postgres://lyetukftifmtss:10ffcb7d39e930f279970acb07351af49a1810536a4e80c0d2720de3f8bc3378@ec2-54-234-44-238.compute-1.amazonaws.com:5432/d5tl00lq0kpfuf"
 
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
@@ -52,6 +52,39 @@ def create_user():
     db.session.commit()
 
     return jsonify("User created")
+
+@app.route("/user/get/<id>", methods=["GET"])
+def get_user_by_id(id):
+    user = db.session.query(User).filter(User.id == id).first()
+    return jsonify(user_schema.dump(user))
+
+@app.route("/user/get", methods=["GET"])
+def get_all_users():
+    all_users = db.session.query(User).all()
+    return jsonify(users_schema.dump(all_users))
+
+@app.route("/user/login", methods=["POST"])
+def verify_user():
+    if request.content_type != "application/json":
+        return jsonify("Error, data must be sent as json")
+
+    post_data = request.get_json()
+    username = post_data.get("username")
+    password = post_data.get("password")
+
+    stored_password = db.session.query(User.password).filter(User.username == username).first()
+    print(stored_password)
+    print(password)
+
+    if stored_password is None:
+        return jsonify("User not Verified")
+
+    valid_password_check = bcrypt.check_password_hash(stored_password[0], password)
+
+    if valid_password_check == False:
+        return jsonify("User not Verified")
+
+    return jsonify("User verified")
 
 
 if __name__ == "__main__":
