@@ -32,6 +32,26 @@ class UserSchema(ma.Schema):
 user_schema = UserSchema()
 users_schema = UserSchema(many=True)
 
+class Appointment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(), nullable=False)
+    company = db.Column(db.String(), nullable=False)
+    start_date = db.Column(db.String(), nullable=False)
+
+
+    def __init__(self, title, company, start_date):
+        self.title = title
+        self.company = company
+        self.start_date = start_date
+        
+
+class AppointmentSchema(ma.Schema):
+    class Meta:
+        fields = ("id", "title", "company", "start_date")
+
+appointment_schema = AppointmentSchema()
+appointments_schema = AppointmentSchema(many=True)
+
 @app.route("/user/add", methods=["POST"])
 def create_user():
     if request.content_type != "application/json":
